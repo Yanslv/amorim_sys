@@ -46,10 +46,11 @@ import {
   meetingService
 } from './services/supabaseService';
 
-const SidebarItem = ({ to, icon: Icon, label, active }: { to: string, icon: any, label: string, active: boolean }) => (
+const SidebarItem = ({ to, icon: Icon, label, active, onClick }: { to: string, icon: any, label: string, active: boolean, onClick?: () => void }) => (
   <Link 
     to={to} 
-    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+    onClick={onClick}
+    className={`flex items-center space-x-3 p-3 rounded-lg transition-all ${
       active ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
     }`}
   >
@@ -57,6 +58,52 @@ const SidebarItem = ({ to, icon: Icon, label, active }: { to: string, icon: any,
     <span className="font-medium">{label}</span>
   </Link>
 );
+
+const BottomNavItem = ({ to, icon: Icon, label, active }: { to: string, icon: any, label: string, active: boolean }) => (
+  <Link 
+    to={to}
+    className={`flex flex-col items-center justify-center space-y-1 p-2 rounded-xl transition-all ${
+      active 
+        ? 'text-indigo-400' 
+        : 'text-white/30 hover:text-white/50'
+    }`}
+  >
+    <Icon size={22} className={active ? 'opacity-100' : 'opacity-40'} />
+    <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'opacity-100' : 'opacity-40'}`}>
+      {label}
+    </span>
+  </Link>
+);
+
+const FABButton = ({ location }: { location: any }) => {
+  const navigate = useNavigate();
+  
+  const handleFABClick = () => {
+    if (location.pathname === '/projects' || location.pathname.startsWith('/projects/')) {
+      // Se estiver na página de projetos, criar novo projeto
+      navigate('/projects?new=true');
+    } else if (location.pathname === '/clients') {
+      // Se estiver na página de clientes, criar novo cliente
+      navigate('/clients?new=true');
+    } else if (location.pathname === '/meetings') {
+      // Se estiver na página de reuniões, criar nova reunião
+      navigate('/meetings?new=true');
+    } else {
+      // Por padrão, ir para projetos
+      navigate('/projects?new=true');
+    }
+  };
+
+  return (
+    <button
+      onClick={handleFABClick}
+      className="lg:hidden fixed bottom-20 left-4 z-50 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 active:scale-95 transition-all"
+      aria-label="Ação rápida"
+    >
+      <Plus size={24} />
+    </button>
+  );
+};
 
 const AppContent = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -218,8 +265,8 @@ const AppContent = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-950 text-white overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-black border-r border-gray-800 flex flex-col p-4">
+      {/* Sidebar - Desktop Only */}
+      <aside className="hidden lg:flex w-64 bg-black border-r border-gray-800 flex-col p-4">
         <div className="flex items-center space-x-2 px-2 mb-10">
           <div className="bg-indigo-600 p-2 rounded-lg">
             <Zap className="text-white fill-white" size={24} />
@@ -228,11 +275,36 @@ const AppContent = () => {
         </div>
 
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/'} />
-          <SidebarItem to="/weekly" icon={Calendar} label="Visão Semanal" active={location.pathname === '/weekly'} />
-          <SidebarItem to="/projects" icon={Briefcase} label="Projetos" active={location.pathname.startsWith('/projects')} />
-          <SidebarItem to="/meetings" icon={Video} label="Reuniões" active={location.pathname === '/meetings'} />
-          <SidebarItem to="/clients" icon={Users} label="Clientes" active={location.pathname === '/clients'} />
+          <SidebarItem 
+            to="/" 
+            icon={LayoutDashboard} 
+            label="Dashboard" 
+            active={location.pathname === '/'}
+          />
+          <SidebarItem 
+            to="/weekly" 
+            icon={Calendar} 
+            label="Visão Semanal" 
+            active={location.pathname === '/weekly'}
+          />
+          <SidebarItem 
+            to="/projects" 
+            icon={Briefcase} 
+            label="Projetos" 
+            active={location.pathname.startsWith('/projects')}
+          />
+          <SidebarItem 
+            to="/meetings" 
+            icon={Video} 
+            label="Reuniões" 
+            active={location.pathname === '/meetings'}
+          />
+          <SidebarItem 
+            to="/clients" 
+            icon={Users} 
+            label="Clientes" 
+            active={location.pathname === '/clients'}
+          />
         </nav>
 
         <div className="mt-auto pt-6 border-t border-gray-800">
@@ -247,8 +319,8 @@ const AppContent = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 text-gray-900">
-        <div className="p-8 max-w-7xl mx-auto">
+      <main className="flex-1 overflow-y-auto bg-gray-50 text-gray-900 w-full lg:w-auto pb-20 lg:pb-0">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           <Routes>
             <Route path="/" element={<Dashboard state={appState} />} />
             <Route path="/weekly" element={<WeeklyView state={appState} />} />
@@ -259,6 +331,45 @@ const AppContent = () => {
           </Routes>
         </div>
       </main>
+
+      {/* Bottom Navigation - Mobile Only */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-lg border-t border-gray-800 z-50">
+        <div className="flex items-center justify-around px-2 py-2">
+          <BottomNavItem 
+            to="/" 
+            icon={LayoutDashboard} 
+            label="Home" 
+            active={location.pathname === '/'}
+          />
+          <BottomNavItem 
+            to="/weekly" 
+            icon={Calendar} 
+            label="Semana" 
+            active={location.pathname === '/weekly'}
+          />
+          <BottomNavItem 
+            to="/projects" 
+            icon={Briefcase} 
+            label="Projetos" 
+            active={location.pathname.startsWith('/projects')}
+          />
+          <BottomNavItem 
+            to="/meetings" 
+            icon={Video} 
+            label="Reuniões" 
+            active={location.pathname === '/meetings'}
+          />
+          <BottomNavItem 
+            to="/clients" 
+            icon={Users} 
+            label="Clientes" 
+            active={location.pathname === '/clients'}
+          />
+        </div>
+      </nav>
+
+      {/* FAB - Mobile Only */}
+      <FABButton location={location} />
     </div>
   );
 };

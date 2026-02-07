@@ -12,6 +12,11 @@
             display: grid;
             grid-template-columns: 80px repeat(7, 1fr);
         }
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: 60px repeat(7, minmax(120px, 1fr));
+            }
+        }
         input, select, textarea {
             background-color: white !important;
             color: #111827 !important;

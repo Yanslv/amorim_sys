@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { projectFileService } from '../services/supabaseService';
 import { 
   Plus, 
@@ -20,9 +20,18 @@ import { ProjectStatus, Project, ProjectFile } from '../types';
 const ProjectList = ({ state }: any) => {
   const { projects, clients, phases, tasks, addProject } = state;
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Abrir modal automaticamente se houver query parameter 'new'
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setIsModalOpen(true);
+      setSearchParams({}); // Remove o query parameter após abrir
+    }
+  }, [searchParams, setSearchParams]);
   
   // Form state
   const [newProject, setNewProject] = useState({
@@ -113,7 +122,7 @@ const ProjectList = ({ state }: any) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredProjects.map((project: Project) => {
           const client = clients.find((c: any) => c.id === project.clientId);
           const progress = getProgress(project.id);
@@ -173,13 +182,13 @@ const ProjectList = ({ state }: any) => {
 
       {/* Modal - Constrained to body area by left offset */}
       {isModalOpen && (
-        <div className="fixed inset-0 left-0 lg:left-64 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900">
-              <h2 className="text-xl font-black">Novo Projeto</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X /></button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 my-auto max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900 flex-shrink-0">
+              <h2 className="text-lg sm:text-xl font-black">Novo Projeto</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddProject} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleAddProject} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase mb-1">Nome do Projeto</label>
                 <input required type="text" value={newProject.name} onChange={e => setNewProject({...newProject, name: e.target.value})} className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900" placeholder="Ex: App de Delivery" />
@@ -194,7 +203,7 @@ const ProjectList = ({ state }: any) => {
                 <label className="block text-xs font-black text-gray-400 uppercase mb-1">Descrição</label>
                 <textarea value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900" rows={3} placeholder="Breve resumo do projeto..."></textarea>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-black text-gray-400 uppercase mb-1">Data de Entrega</label>
                   <input required type="date" value={newProject.dueDate} onChange={e => setNewProject({...newProject, dueDate: e.target.value})} className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900" />

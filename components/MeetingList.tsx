@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Plus, 
   Video, 
@@ -19,8 +20,17 @@ import { Meeting, MeetingStatus } from '../types';
 
 const MeetingList = ({ state }: any) => {
   const { meetings, projects, clients, addMeeting, deleteMeeting, updateMeeting } = state;
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Abrir modal automaticamente se houver query parameter 'new'
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setIsModalOpen(true);
+      setSearchParams({}); // Remove o query parameter após abrir
+    }
+  }, [searchParams, setSearchParams]);
   
   const [newMeeting, setNewMeeting] = useState({
     title: '',
@@ -122,35 +132,35 @@ const MeetingList = ({ state }: any) => {
           const client = clients.find((c: any) => c.id === meeting.clientId);
           
           return (
-            <div key={meeting.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:shadow-md transition-shadow group">
-              <div className="flex items-center space-x-6">
-                <div className="bg-indigo-50 text-indigo-600 p-4 rounded-2xl flex flex-col items-center justify-center min-w-[80px]">
-                  <span className="text-xs font-black uppercase">{new Date(meeting.date + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short' })}</span>
-                  <span className="text-2xl font-black">{new Date(meeting.date + 'T00:00:00').getDate()}</span>
+            <div key={meeting.id} className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 hover:shadow-md transition-shadow group">
+              <div className="flex items-start sm:items-center space-x-4 sm:space-x-6 flex-1 min-w-0">
+                <div className="bg-indigo-50 text-indigo-600 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center min-w-[60px] sm:min-w-[80px] flex-shrink-0">
+                  <span className="text-[10px] sm:text-xs font-black uppercase">{new Date(meeting.date + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                  <span className="text-xl sm:text-2xl font-black">{new Date(meeting.date + 'T00:00:00').getDate()}</span>
                 </div>
-                <div>
-                  <div className="flex items-center space-x-3 mb-1">
-                    <h3 className="text-lg font-bold text-gray-900">{meeting.title}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{meeting.title}</h3>
                     {getStatusBadge(meeting.status)}
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 font-medium">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 font-medium">
                     <span className="flex items-center space-x-1">
-                      <Clock size={16} className="text-gray-400" />
+                      <Clock size={14} className="sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
                       <span>{meeting.startTime}h - {meeting.endTime}h</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      <Briefcase size={16} className="text-gray-400" />
-                      <span>{project?.name || 'Sem projeto'}</span>
+                      <Briefcase size={14} className="sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{project?.name || 'Sem projeto'}</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      <Users size={16} className="text-gray-400" />
-                      <span>{client?.company || client?.name || 'Sem cliente'}</span>
+                      <Users size={14} className="sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{client?.company || client?.name || 'Sem cliente'}</span>
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-end sm:justify-start space-x-2 flex-shrink-0">
                 {meeting.status === MeetingStatus.SCHEDULED && (
                   <>
                     <button 
@@ -191,13 +201,13 @@ const MeetingList = ({ state }: any) => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900">
-              <h2 className="text-xl font-black">Agendar Reunião</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X /></button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden my-auto max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900 flex-shrink-0">
+              <h2 className="text-lg sm:text-xl font-black">Agendar Reunião</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddMeeting} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleAddMeeting} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase mb-1">Título da Reunião</label>
                 <input required type="text" value={newMeeting.title} onChange={e => setNewMeeting({...newMeeting, title: e.target.value})} className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900" placeholder="Ex: Alinhamento de Design" />
@@ -209,7 +219,7 @@ const MeetingList = ({ state }: any) => {
                   {projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-black text-gray-400 uppercase mb-1">Data</label>
                   <input required type="date" value={newMeeting.date} onChange={e => setNewMeeting({...newMeeting, date: e.target.value})} className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900" />

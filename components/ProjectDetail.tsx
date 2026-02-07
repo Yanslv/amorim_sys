@@ -295,18 +295,18 @@ const ProjectDetail = ({ state }: any) => {
       </button>
 
       {/* Project Header */}
-      <div className="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm overflow-hidden relative">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-4xl font-black tracking-tight">{project.name}</h1>
-              <span className="bg-indigo-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100">
+      <div className="bg-white p-4 sm:p-6 lg:p-10 rounded-3xl border border-gray-100 shadow-sm overflow-hidden relative">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 relative z-10">
+          <div className="space-y-2 sm:space-y-3 flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight truncate">{project.name}</h1>
+              <span className="bg-indigo-600 text-white px-3 sm:px-4 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 flex-shrink-0">
                 {project.status}
               </span>
             </div>
-            <p className="text-xl text-gray-500 max-w-2xl font-medium leading-relaxed">{project.description}</p>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-500 max-w-2xl font-medium leading-relaxed">{project.description}</p>
           </div>
-          <div className="flex flex-col items-end gap-3 min-w-[280px]">
+          <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-end gap-2 sm:gap-3 min-w-[200px] sm:min-w-[280px]">
             <div className="flex items-center space-x-3 text-sm font-bold text-gray-400 bg-gray-50 px-4 py-2 rounded-xl">
               <Users size={18} className="text-indigo-500" />
               <span>Cliente: <span className="text-gray-900">{client?.company}</span></span>
@@ -318,23 +318,23 @@ const ProjectDetail = ({ state }: any) => {
           </div>
         </div>
 
-        <div className="mt-10 flex border-b border-gray-100">
-          <button onClick={() => setActiveTab('geral')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === 'geral' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
+        <div className="mt-6 sm:mt-10 flex border-b border-gray-100 overflow-x-auto">
+          <button onClick={() => setActiveTab('geral')} className={`px-4 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap flex-shrink-0 ${activeTab === 'geral' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
             Geral {activeTab === 'geral' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full" />}
           </button>
-          <button onClick={() => setActiveTab('tasks')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === 'tasks' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
+          <button onClick={() => setActiveTab('tasks')} className={`px-4 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap flex-shrink-0 ${activeTab === 'tasks' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
             Tasks {activeTab === 'tasks' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full" />}
           </button>
-          <button onClick={() => setActiveTab('arquivos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === 'arquivos' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
+          <button onClick={() => setActiveTab('arquivos')} className={`px-4 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap flex-shrink-0 ${activeTab === 'arquivos' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}>
             Arquivos {activeTab === 'arquivos' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full" />}
           </button>
         </div>
       </div>
 
       {activeTab === 'geral' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="p-6 bg-white rounded-3xl flex items-center space-x-5 shadow-sm border border-gray-100">
                 <div className="p-4 bg-indigo-50 rounded-xl text-indigo-600"><Target size={28} /></div>
                 <div><p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Progresso Geral</p><p className="text-3xl font-black">{progress}%</p></div>
@@ -468,18 +468,27 @@ const ProjectDetail = ({ state }: any) => {
 
       {/* File Preview Modal */}
       {previewFile && (
-        <div className="fixed inset-0 left-0 lg:left-64 bg-black/80 backdrop-blur-md z-[60] flex flex-col animate-in fade-in duration-300">
-          <div className="p-6 flex justify-between items-center text-white border-b border-white/10">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-white/10 rounded-xl">{getFileIcon(previewFile.type, previewFile.name)}</div>
-              <div><h3 className="font-bold truncate max-w-md">{previewFile.name}</h3><p className="text-[10px] uppercase font-black opacity-60 tracking-widest">{formatFileSize(previewFile.size)} • {previewFile.type}</p></div>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex flex-col animate-in fade-in duration-300">
+          <div className="p-3 sm:p-6 flex justify-between items-center text-white border-b border-white/10 flex-shrink-0">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+              <div className="p-1.5 sm:p-2 bg-white/10 rounded-lg sm:rounded-xl flex-shrink-0">{getFileIcon(previewFile.type, previewFile.name)}</div>
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold truncate max-w-md">{previewFile.name}</h3>
+                <p className="text-[9px] sm:text-[10px] uppercase font-black opacity-60 tracking-widest">{formatFileSize(previewFile.size)} • {previewFile.type}</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <a href={previewUrl} download={previewFile.name} className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors flex items-center space-x-2"><Download size={20} /><span className="text-xs font-bold uppercase">Baixar</span></a>
-              <button onClick={() => setPreviewFile(null)} className="p-3 bg-white text-black rounded-2xl font-bold transition-transform active:scale-95 flex items-center space-x-2"><X size={20} /><span className="text-xs font-bold uppercase">Fechar</span></button>
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 ml-2">
+              <a href={previewUrl} download={previewFile.name} className="p-2 sm:p-3 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl transition-colors flex items-center space-x-1 sm:space-x-2">
+                <Download size={16} className="sm:w-5 sm:h-5" />
+                <span className="text-[10px] sm:text-xs font-bold uppercase hidden sm:inline">Baixar</span>
+              </a>
+              <button onClick={() => setPreviewFile(null)} className="p-2 sm:p-3 bg-white text-black rounded-xl sm:rounded-2xl font-bold transition-transform active:scale-95 flex items-center space-x-1 sm:space-x-2">
+                <X size={16} className="sm:w-5 sm:h-5" />
+                <span className="text-[10px] sm:text-xs font-bold uppercase hidden sm:inline">Fechar</span>
+              </button>
             </div>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto bg-black/20">
+          <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 lg:p-8 overflow-y-auto bg-black/20 min-h-0">
             {previewFile.type.includes('image') ? (
               <div className="w-full h-full flex items-center justify-center">
                 <img src={previewUrl} alt={previewFile.name} className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in duration-500" />
@@ -542,26 +551,37 @@ const ProjectDetail = ({ state }: any) => {
 
       {/* Task Detail Modal */}
       {selectedTaskDetail && (
-        <div className="fixed inset-0 left-0 lg:left-64 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-4xl shadow-2xl animate-in fade-in zoom-in duration-300 overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 text-gray-900">
-              <div className="flex items-center space-x-4"><div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100"><Info size={24} /></div><div><h2 className="text-2xl font-black tracking-tight leading-tight">{selectedTaskDetail.title}</h2><p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Status e Evolução da Atividade</p></div></div>
-              <button onClick={() => setSelectedTaskDetail(null)} className="p-2 text-gray-400 hover:text-rose-600 bg-white border border-gray-100 rounded-2xl transition-all shadow-sm active:scale-95"><X size={24} /></button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-[2.5rem] w-full max-w-4xl shadow-2xl animate-in fade-in zoom-in duration-300 overflow-hidden flex flex-col my-auto max-h-[95vh] sm:max-h-[85vh]">
+            <div className="p-4 sm:p-6 lg:p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 text-gray-900 flex-shrink-0">
+              <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+                <div className="p-2 sm:p-3 bg-indigo-600 text-white rounded-xl sm:rounded-2xl shadow-lg shadow-indigo-100 flex-shrink-0">
+                  <Info size={18} className="sm:w-6 sm:h-6" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tight leading-tight truncate">{selectedTaskDetail.title}</h2>
+                  <p className="text-[9px] sm:text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Status e Evolução da Atividade</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedTaskDetail(null)} className="p-2 text-gray-400 hover:text-rose-600 bg-white border border-gray-100 rounded-xl sm:rounded-2xl transition-all shadow-sm active:scale-95 flex-shrink-0 ml-2"><X size={20} className="sm:w-6 sm:h-6" /></button>
             </div>
-            <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-5 h-full">
-              <div className="md:col-span-2 p-10 border-r border-gray-50 space-y-8 text-gray-900">
-                <form onSubmit={handleStatusUpdate} className="space-y-6">
-                  <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Atualizar Situação</h3>
-                  <div className="space-y-5">
+            <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-5 min-h-0">
+              <div className="md:col-span-2 p-4 sm:p-6 lg:p-10 border-r border-gray-50 space-y-4 sm:space-y-6 lg:space-y-8 text-gray-900">
+                <form onSubmit={handleStatusUpdate} className="space-y-4 sm:space-y-6">
+                  <h3 className="text-[9px] sm:text-[10px] font-black uppercase text-gray-400 tracking-widest">Atualizar Situação</h3>
+                  <div className="space-y-4 sm:space-y-5">
                     <div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Novo Status:</label><select value={newStatus} onChange={e => setNewStatus(e.target.value as TaskStatus)} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold"><option value={TaskStatus.PENDING}>Pendente</option><option value={TaskStatus.IN_PROGRESS}>Em Andamento</option><option value={TaskStatus.COMPLETED}>Concluída</option><option value={TaskStatus.PAUSED}>Pausada</option><option value={TaskStatus.WAITING_INFO}>Aguardando Informações</option><option value={TaskStatus.BLOCKED}>Bloqueada</option></select></div>
                     <div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Observação Detalhada:</label><textarea required rows={5} value={observation} onChange={e => setObservation(e.target.value)} placeholder="Relate o progresso..." className="w-full p-5 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 text-sm leading-relaxed" /></div>
                     <button type="submit" className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 active:scale-[0.98]"><MessageSquare size={18} /><span>Registrar</span></button>
                   </div>
                 </form>
               </div>
-              <div className="md:col-span-3 p-10 bg-gray-50/30 flex flex-col">
-                <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center space-x-3 mb-10"><History size={16} /><span>Histórico</span></h3>
-                <div className="flex-1 space-y-8 text-gray-900">
+              <div className="md:col-span-3 p-4 sm:p-6 lg:p-10 bg-gray-50/30 flex flex-col border-t md:border-t-0 md:border-l border-gray-100 min-h-0">
+                <h3 className="text-[9px] sm:text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6 lg:mb-10 flex-shrink-0">
+                  <History size={14} className="sm:w-4 sm:h-4" />
+                  <span>Histórico</span>
+                </h3>
+                <div className="flex-1 space-y-4 sm:space-y-6 lg:space-y-8 text-gray-900 overflow-y-auto min-h-0">
                   {(selectedTaskDetail.history && selectedTaskDetail.history.length > 0) ? (
                     selectedTaskDetail.history.map((entry, idx) => (
                       <div key={idx} className="relative pl-10 pb-8 border-l-2 border-indigo-100 last:border-0"><div className="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-white border-4 border-indigo-600 shadow-sm" /><div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all"><div className="flex justify-between items-start mb-4"><span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg ${entry.status === TaskStatus.COMPLETED ? 'bg-emerald-100 text-emerald-700' : entry.status === TaskStatus.PAUSED ? 'bg-amber-100 text-amber-700' : entry.status === TaskStatus.WAITING_INFO ? 'bg-orange-100 text-orange-700' : 'bg-indigo-100 text-indigo-700'}`}>{getStatusLabel(entry.status)}</span><span className="text-[10px] text-gray-400 font-black flex items-center space-x-1.5"><Calendar size={12} /><span>{new Date(entry.timestamp).toLocaleString('pt-BR')}</span></span></div><p className="text-sm text-gray-700 leading-relaxed font-medium italic">"{entry.observation}"</p></div></div>
@@ -578,23 +598,60 @@ const ProjectDetail = ({ state }: any) => {
 
       {/* Creation Modals */}
       {isPhaseModalOpen && (
-        <div className="fixed inset-0 left-0 lg:left-64 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900 font-black"><h2 className="text-xl">Adicionar Fase</h2><button onClick={() => setIsPhaseModalOpen(false)} className="text-gray-400 hover:text-gray-600 active:scale-90"><X /></button></div>
-            <form onSubmit={handleAddPhase} className="p-8 space-y-6"><div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Nome do Estágio</label><input required type="text" value={newPhaseName} onChange={e => setNewPhaseName(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" placeholder="Ex: Criação do Protótipo" /></div><button type="submit" className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">Definir Fase</button></form>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden my-auto max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-6 lg:p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900 font-black flex-shrink-0">
+              <h2 className="text-lg sm:text-xl">Adicionar Fase</h2>
+              <button onClick={() => setIsPhaseModalOpen(false)} className="text-gray-400 hover:text-gray-600 active:scale-90 p-1"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddPhase} className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 overflow-y-auto flex-1 min-h-0">
+              <div>
+                <label className="block text-[9px] sm:text-[10px] font-black text-gray-400 uppercase mb-2">Nome do Estágio</label>
+                <input required type="text" value={newPhaseName} onChange={e => setNewPhaseName(e.target.value)} className="w-full p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" placeholder="Ex: Criação do Protótipo" />
+              </div>
+              <button type="submit" className="w-full py-4 sm:py-5 bg-indigo-600 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">Definir Fase</button>
+            </form>
           </div>
         </div>
       )}
 
       {isTaskModalOpen && (
-        <div className="fixed inset-0 left-0 lg:left-64 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900 font-black"><h2 className="text-xl">Planejar Nova Task</h2><button onClick={() => setIsTaskModalOpen(false)} className="text-gray-400 hover:text-gray-600 active:scale-90"><X /></button></div>
-            <form onSubmit={handleAddTask} className="p-8 space-y-5">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-[2rem] w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden my-auto max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+            <div className="p-4 sm:p-6 lg:p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50 text-gray-900 font-black flex-shrink-0">
+              <h2 className="text-lg sm:text-xl">Planejar Nova Task</h2>
+              <button onClick={() => setIsTaskModalOpen(false)} className="text-gray-400 hover:text-gray-600 active:scale-90 p-1"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddTask} className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 overflow-y-auto flex-1 min-h-0">
               <div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">O que será feito?</label><input required type="text" value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" placeholder="Título da tarefa..." /></div>
-              <div className="grid grid-cols-2 gap-4"><div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Horas Est.</label><input type="number" value={newTask.estimatedHours} onChange={e => setNewTask({...newTask, estimatedHours: Number(e.target.value)})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" /></div><div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Prioridade</label><select value={newTask.priority} onChange={e => setNewTask({...newTask, priority: e.target.value as any})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold"><option value={TaskPriority.LOW}>Baixa</option><option value={TaskPriority.MEDIUM}>Média</option><option value={TaskPriority.HIGH}>Alta</option></select></div></div>
-              <div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Data de Execução</label><input type="date" value={newTask.startDate} onChange={e => setNewTask({...newTask, startDate: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" /></div>
-              <div className="grid grid-cols-2 gap-4"><div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Hora Início</label><input type="time" value={newTask.startTime} onChange={e => setNewTask({...newTask, startTime: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" /></div><div><label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Hora Fim</label><input type="time" value={newTask.endTime} onChange={e => setNewTask({...newTask, endTime: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" /></div></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Horas Est.</label>
+                  <input type="number" value={newTask.estimatedHours} onChange={e => setNewTask({...newTask, estimatedHours: Number(e.target.value)})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Prioridade</label>
+                  <select value={newTask.priority} onChange={e => setNewTask({...newTask, priority: e.target.value as any})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold">
+                    <option value={TaskPriority.LOW}>Baixa</option>
+                    <option value={TaskPriority.MEDIUM}>Média</option>
+                    <option value={TaskPriority.HIGH}>Alta</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Data de Execução</label>
+                <input type="date" value={newTask.startDate} onChange={e => setNewTask({...newTask, startDate: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Hora Início</label>
+                  <input type="time" value={newTask.startTime} onChange={e => setNewTask({...newTask, startTime: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">Hora Fim</label>
+                  <input type="time" value={newTask.endTime} onChange={e => setNewTask({...newTask, endTime: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 font-bold" />
+                </div>
+              </div>
               <div className="bg-blue-50 p-4 rounded-xl flex items-center space-x-3 border border-blue-100"><Info size={16} className="text-blue-500" /><p className="text-[10px] text-blue-700 font-black uppercase tracking-tight">Tarefa iniciada como "Pendente".</p></div>
               <button type="submit" className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-black transition-all">Planejar Task</button>
             </form>
