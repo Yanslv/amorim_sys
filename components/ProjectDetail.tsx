@@ -12,7 +12,6 @@ import {
   Users,
   Calendar,
   Layers,
-  Sparkles,
   RefreshCw,
   X,
   Trash2,
@@ -31,7 +30,7 @@ import {
   PlayCircle
 } from 'lucide-react';
 import { Project, Task, Phase, TaskStatus, PhaseStatus, TaskPriority, ProjectFile } from '../types';
-import { geminiService } from '../services/geminiService';
+import { projectFileService } from '../services/supabaseService';
 import mammoth from 'mammoth';
 import { Document, Page, pdfjs } from 'react-pdf';
 import ReactAudioPlayer from 'react-audio-player';
@@ -42,10 +41,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.vers
 const ProjectDetail = ({ state }: any) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, phases, tasks, clients, setPhases, setTasks, addPhase, addTask, deleteTask, updateTask, updateProject } = state;
+  const { projects, phases, tasks, clients, setPhases, setTasks, addPhase, addTask, deleteTask, updateTask, updateProject, setProjects } = state;
 
   const [activeTab, setActiveTab] = useState<'geral' | 'tasks' | 'arquivos'>('geral');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isPhaseModalOpen, setIsPhaseModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedPhaseId, setSelectedPhaseId] = useState('');
@@ -76,46 +74,59 @@ const ProjectDetail = ({ state }: any) => {
   const projectPhases = phases.filter((f: Phase) => f.projectId === id).sort((a: any, b: any) => a.order - b.order);
   const projectTasks = tasks.filter((t: Task) => t.projectId === id);
 
-  const base64ToBlobUrl = (base64: string, type: string) => {
-    try {
-      const byteCharacters = atob(base64.split(',')[1]);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type });
-      return URL.createObjectURL(blob);
-    } catch (e) {
-      console.error("Failed to convert base64 to Blob:", e);
-      return '';
-    }
-  };
-
   useEffect(() => {
     if (previewFile) {
-      const url = base64ToBlobUrl(previewFile.url, previewFile.type);
-      setPreviewUrl(url);
-
-      if (previewFile.name.toLowerCase().endsWith('.docx') || previewFile.type.includes('officedocument.wordprocessingml.document')) {
-        const base64Data = previewFile.url.split(',')[1];
-        const binaryString = window.atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
+      // Se a URL já é uma URL pública (não base64), usar diretamente
+      if (previewFile.url.startsWith('http://') || previewFile.url.startsWith('https://')) {
+        setPreviewUrl(previewFile.url);
         
-        mammoth.convertToHtml({ arrayBuffer: bytes.buffer })
-          .then((result) => setDocxContent(result.value))
-          .catch((err) => {
-            console.error("Error converting docx:", err);
-            setDocxContent("<div class='p-10 text-center'><p class='text-rose-500 font-bold'>Erro ao processar o documento Word.</p></div>");
-          });
+        // Para arquivos DOCX, fazer download e converter
+        if (previewFile.name.toLowerCase().endsWith('.docx') || previewFile.type.includes('officedocument.wordprocessingml.document')) {
+          fetch(previewFile.url)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => {
+              mammoth.convertToHtml({ arrayBuffer })
+                .then((result) => setDocxContent(result.value))
+                .catch((err) => {
+                  console.error("Error converting docx:", err);
+                  setDocxContent("<div class='p-10 text-center'><p class='text-rose-500 font-bold'>Erro ao processar o documento Word.</p></div>");
+                });
+            })
+            .catch((err) => {
+              console.error("Error fetching docx:", err);
+              setDocxContent("<div class='p-10 text-center'><p class='text-rose-500 font-bold'>Erro ao carregar o documento Word.</p></div>");
+            });
+        }
+      } else {
+        // Fallback para base64 (compatibilidade com dados antigos)
+        try {
+          const byteCharacters = atob(previewFile.url.split(',')[1]);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: previewFile.type });
+          const url = URL.createObjectURL(blob);
+          setPreviewUrl(url);
+          
+          if (previewFile.name.toLowerCase().endsWith('.docx') || previewFile.type.includes('officedocument.wordprocessingml.document')) {
+            mammoth.convertToHtml({ arrayBuffer: byteArray.buffer })
+              .then((result) => setDocxContent(result.value))
+              .catch((err) => {
+                console.error("Error converting docx:", err);
+                setDocxContent("<div class='p-10 text-center'><p class='text-rose-500 font-bold'>Erro ao processar o documento Word.</p></div>");
+              });
+          }
+          
+          return () => {
+            URL.revokeObjectURL(url);
+          };
+        } catch (e) {
+          console.error("Failed to process file:", e);
+          setPreviewUrl('');
+        }
       }
-
-      return () => {
-        if (url) URL.revokeObjectURL(url);
-      };
     } else {
       setPreviewUrl('');
       setDocxContent('');
@@ -131,86 +142,64 @@ const ProjectDetail = ({ state }: any) => {
     return Math.round((completed / projectTasks.length) * 100);
   }, [projectTasks]);
 
-  const handleGeneratePlan = async () => {
-    setIsGenerating(true);
-    const plan = await geminiService.suggestProjectPlan(project.name, project.description);
-    if (plan && plan.phases) {
-      const newPhases: Phase[] = [];
-      const newTasks: Task[] = [];
-      
-      plan.phases.forEach((p: any, idx: number) => {
-        const phaseId = `f-gen-${Date.now()}-${idx}`;
-        newPhases.push({
-          id: phaseId,
-          projectId: project.id,
-          name: p.name,
-          order: projectPhases.length + idx + 1,
-          status: PhaseStatus.NOT_STARTED
-        });
 
-        p.tasks.forEach((t: any, tidx: number) => {
-          newTasks.push({
-            id: `t-gen-${Date.now()}-${idx}-${tidx}`,
-            projectId: project.id,
-            phaseId: phaseId,
-            title: t.title,
-            description: '',
-            status: TaskStatus.PENDING, 
-            startDate: project.startDate,
-            startTime: '09:00',
-            endDate: project.dueDate,
-            endTime: '10:00',
-            estimatedHours: t.estimatedHours || 1,
-            priority: TaskPriority.MEDIUM,
-            history: []
-          });
-        });
-      });
-
-      setPhases([...phases, ...newPhases]);
-      setTasks([...tasks, ...newTasks]);
-    }
-    setIsGenerating(false);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        const newFile: ProjectFile = {
-          id: `file-${Date.now()}`,
-          name: file.name,
-          url: base64,
-          type: file.type,
-          size: file.size,
-          uploadedAt: new Date().toISOString()
-        };
-        updateProject(project.id, {
-          files: [...(project.files || []), newFile]
-        });
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    try {
+      // Fazer upload para o Supabase Storage
+      const uploadedFile = await projectFileService.uploadFile(project.id, file);
+      
+      if (uploadedFile) {
+        // Recarregar arquivos do banco para garantir sincronização
+        const files = await projectFileService.getByProjectId(project.id);
+        
+        // Atualizar projeto com nova lista de arquivos
+        const updatedProject = { ...project, files };
+        setProjects(projects.map((p: Project) => p.id === project.id ? updatedProject : p));
+      } else {
+        alert('Erro ao fazer upload do arquivo. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      alert('Erro ao fazer upload do arquivo. Tente novamente.');
+    }
+    
+    // Limpar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
-  const deleteFile = (fileId: string, e: React.MouseEvent) => {
+  const deleteFile = async (fileId: string, fileUrl: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (window.confirm('Deseja realmente excluir este arquivo? Esta ação é irreversível.')) {
-      // Fecha o preview antes de excluir se for o arquivo atual
-      if (previewFile?.id === fileId) {
-        setPreviewFile(null);
+      try {
+        // Fecha o preview antes de excluir se for o arquivo atual
+        if (previewFile?.id === fileId) {
+          setPreviewFile(null);
+        }
+        
+        // Deletar do Storage e do banco
+        const success = await projectFileService.delete(fileId, fileUrl);
+        
+        if (success) {
+          // Recarregar arquivos do banco para garantir sincronização
+          const files = await projectFileService.getByProjectId(project.id);
+          
+          // Atualizar projeto com nova lista de arquivos
+          const updatedProject = { ...project, files };
+          setProjects(projects.map((p: Project) => p.id === project.id ? updatedProject : p));
+        } else {
+          alert('Erro ao excluir arquivo. Tente novamente.');
+        }
+      } catch (error) {
+        console.error('Erro ao deletar arquivo:', error);
+        alert('Erro ao excluir arquivo. Tente novamente.');
       }
-      
-      const currentFiles = project.files || [];
-      const updatedFiles = currentFiles.filter((f: ProjectFile) => f.id !== fileId);
-      
-      updateProject(project.id, {
-        files: updatedFiles
-      });
     }
   };
 
@@ -238,25 +227,23 @@ const ProjectDetail = ({ state }: any) => {
     return Math.round((completed / pTasks.length) * 100);
   };
 
-  const handleAddPhase = (e: React.FormEvent) => {
+  const handleAddPhase = async (e: React.FormEvent) => {
     e.preventDefault();
-    const phase: Phase = {
-      id: `f-${Date.now()}`,
+    const phase: Omit<Phase, 'id'> = {
       projectId: project.id,
       name: newPhaseName,
       order: projectPhases.length + 1,
       status: PhaseStatus.NOT_STARTED
     };
-    addPhase(phase);
+    await addPhase(phase);
     setNewPhaseName('');
     setIsPhaseModalOpen(false);
   };
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    const task: Task = {
+    const task: Omit<Task, 'id'> = {
       ...newTask,
-      id: `t-${Date.now()}`,
       projectId: project.id,
       phaseId: selectedPhaseId,
       status: TaskStatus.PENDING,
@@ -264,24 +251,24 @@ const ProjectDetail = ({ state }: any) => {
       endDate: newTask.startDate,
       history: []
     };
-    addTask(task);
+    await addTask(task);
     setIsTaskModalOpen(false);
     setNewTask({ title: '', estimatedHours: 1, priority: TaskPriority.MEDIUM, startTime: '09:00', endTime: '10:00', startDate: new Date().toISOString().split('T')[0] });
   };
 
-  const handleStatusUpdate = (e: React.FormEvent) => {
+  const handleStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedTaskDetail && observation.trim()) {
-      updateTask(selectedTaskDetail.id, { status: newStatus }, observation);
+      await updateTask(selectedTaskDetail.id, { status: newStatus }, observation);
       setObservation('');
       setSelectedTaskDetail(null);
     }
   };
 
-  const handleDeleteTask = (taskId: string, e: React.MouseEvent) => {
+  const handleDeleteTask = async (taskId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      deleteTask(taskId);
+      await deleteTask(taskId);
     }
   };
 
@@ -399,14 +386,9 @@ const ProjectDetail = ({ state }: any) => {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black">Roteiro de Entrega</h2>
-            <div className="flex space-x-3">
-              <button onClick={handleGeneratePlan} disabled={isGenerating} className="flex items-center space-x-2 bg-indigo-50 text-indigo-600 px-5 py-3 rounded-2xl text-sm font-bold border border-indigo-100 hover:bg-indigo-100 transition-all disabled:opacity-50 shadow-sm">
-                {isGenerating ? <RefreshCw className="animate-spin" size={16} /> : <Sparkles size={16} />}<span>Sugerir IA</span>
-              </button>
-              <button onClick={() => setIsPhaseModalOpen(true)} className="flex items-center space-x-2 bg-gray-900 text-white px-5 py-3 rounded-2xl text-sm font-bold shadow-xl hover:bg-gray-800 transition-all">
-                <Plus size={16} /><span>Nova Fase</span>
-              </button>
-            </div>
+            <button onClick={() => setIsPhaseModalOpen(true)} className="flex items-center space-x-2 bg-gray-900 text-white px-5 py-3 rounded-2xl text-sm font-bold shadow-xl hover:bg-gray-800 transition-all">
+              <Plus size={16} /><span>Nova Fase</span>
+            </button>
           </div>
           <div className="space-y-6">
             {projectPhases.map((phase: Phase) => {
@@ -463,7 +445,7 @@ const ProjectDetail = ({ state }: any) => {
                       <a href={file.url} download={file.name} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-xl transition-colors" title="Baixar"><Download size={18} /></a>
                       <button 
                         type="button"
-                        onClick={(e) => deleteFile(file.id, e)} 
+                        onClick={(e) => deleteFile(file.id, file.url, e)} 
                         className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors" 
                         title="Excluir"
                       >

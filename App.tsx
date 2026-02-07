@@ -38,27 +38,13 @@ import ProjectDetail from './components/ProjectDetail';
 import ClientList from './components/ClientList';
 import WeeklyView from './components/WeeklyView';
 import MeetingList from './components/MeetingList';
-
-// --- Context & Initial Data ---
-const INITIAL_CLIENTS: Client[] = [
-  { id: 'c1', name: 'João Silva', company: 'Tech Solutions', email: 'joao@tech.com', phone: '11 99999-9999', status: ClientStatus.ACTIVE, observations: '' },
-  { id: 'c2', name: 'Maria Souza', company: 'Design Pro', email: 'maria@design.com', phone: '11 88888-8888', status: ClientStatus.ACTIVE, observations: '' },
-];
-
-const INITIAL_PROJECTS: Project[] = [
-  // Fix: Added missing 'files' property to satisfy the Project interface
-  { id: 'p1', clientId: 'c1', name: 'Website E-commerce', description: 'Criação de nova loja virtual', value: 15000, startDate: '2024-05-01', dueDate: '2024-06-15', status: ProjectStatus.ACTIVE, files: [] },
-];
-
-const INITIAL_PHASES: Phase[] = [
-  { id: 'f1', projectId: 'p1', name: 'Planejamento', order: 1, status: PhaseStatus.COMPLETED },
-  { id: 'f2', projectId: 'p1', name: 'Desenvolvimento', order: 2, status: PhaseStatus.IN_PROGRESS },
-];
-
-const INITIAL_TASKS: Task[] = [
-  { id: 't1', projectId: 'p1', phaseId: 'f1', title: 'Definição de Requisitos', description: '', status: TaskStatus.COMPLETED, startDate: '2024-05-01', startTime: '09:00', endDate: '2024-05-01', endTime: '12:00', estimatedHours: 3, priority: TaskPriority.HIGH, history: [{ status: TaskStatus.COMPLETED, observation: 'Initial completion', timestamp: new Date().toISOString() }] },
-  { id: 't2', projectId: 'p1', phaseId: 'f2', title: 'Setup do Banco de Dados', description: '', status: TaskStatus.IN_PROGRESS, startDate: '2024-05-15', startTime: '10:00', endDate: '2024-05-15', endTime: '14:00', estimatedHours: 4, priority: TaskPriority.MEDIUM, history: [] },
-];
+import {
+  clientService,
+  projectService,
+  phaseService,
+  taskService,
+  meetingService
+} from './services/supabaseService';
 
 const SidebarItem = ({ to, icon: Icon, label, active }: { to: string, icon: any, label: string, active: boolean }) => (
   <Link 
@@ -73,45 +59,143 @@ const SidebarItem = ({ to, icon: Icon, label, active }: { to: string, icon: any,
 );
 
 const AppContent = () => {
-  const [clients, setClients] = useState<Client[]>(INITIAL_CLIENTS);
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [phases, setPhases] = useState<Phase[]>(INITIAL_PHASES);
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [phases, setPhases] = useState<Phase[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const location = useLocation();
 
-  const addClient = (client: Client) => setClients(prev => [...prev, client]);
-  const deleteClient = (id: string) => setClients(prev => prev.filter(c => c.id !== id));
-  const updateClient = (id: string, updates: Partial<Client>) => setClients(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-  
-  const addProject = (project: Project) => setProjects(prev => [...prev, project]);
-  const updateProject = (id: string, updates: Partial<Project>) => setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
-  
-  const addPhase = (phase: Phase) => setPhases(prev => [...prev, phase]);
-  const addTask = (task: Task) => setTasks(prev => [...prev, { ...task, history: task.history || [] }]);
-  const deleteTask = (taskId: string) => setTasks(prev => prev.filter(t => t.id !== taskId));
-  
-  const updateTask = (id: string, updates: Partial<Task>, observation?: string) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id === id) {
-        const newHistory = [...(t.history || [])];
-        if (updates.status && updates.status !== t.status) {
-          newHistory.unshift({
-            status: updates.status,
-            observation: observation || 'Mudança de status sem observação detalhada',
-            timestamp: new Date().toISOString()
-          });
-        }
-        return { ...t, ...updates, history: newHistory };
+  // Carregar dados do Supabase
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [clientsData, projectsData, phasesData, tasksData, meetingsData] = await Promise.all([
+          clientService.getAll(),
+          projectService.getAll(),
+          phaseService.getAll(),
+          taskService.getAll(),
+          meetingService.getAll()
+        ]);
+        
+        setClients(clientsData);
+        setProjects(projectsData);
+        setPhases(phasesData);
+        setTasks(tasksData);
+        setMeetings(meetingsData);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
       }
-      return t;
-    }));
+    };
+    
+    loadData();
+  }, []);
+
+  const addClient = async (client: Omit<Client, 'id'>) => {
+    const newClient = await clientService.create(client);
+    if (newClient) {
+      setClients(prev => [...prev, newClient]);
+      return newClient;
+    }
+    return null;
+  };
+
+  const deleteClient = async (id: string) => {
+    const success = await clientService.delete(id);
+    if (success) {
+      setClients(prev => prev.filter(c => c.id !== id));
+    }
+    return success;
+  };
+
+  const updateClient = async (id: string, updates: Partial<Client>) => {
+    const updated = await clientService.update(id, updates);
+    if (updated) {
+      setClients(prev => prev.map(c => c.id === id ? updated : c));
+    }
+    return updated;
   };
   
-  const addMeeting = (meeting: Meeting) => setMeetings(prev => [...prev, meeting]);
-  const deleteMeeting = (id: string) => setMeetings(prev => prev.filter(m => m.id !== id));
-  const updateMeeting = (id: string, updates: Partial<Meeting>) => setMeetings(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  const addProject = async (project: Omit<Project, 'id'>) => {
+    const newProject = await projectService.create(project);
+    if (newProject) {
+      setProjects(prev => [...prev, newProject]);
+      return newProject;
+    }
+    return null;
+  };
+
+  const updateProject = async (id: string, updates: Partial<Project>) => {
+    const updated = await projectService.update(id, updates);
+    if (updated) {
+      setProjects(prev => prev.map(p => p.id === id ? updated : p));
+    }
+    return updated;
+  };
+  
+  const addPhase = async (phase: Omit<Phase, 'id'>) => {
+    const newPhase = await phaseService.create(phase);
+    if (newPhase) {
+      setPhases(prev => [...prev, newPhase]);
+      return newPhase;
+    }
+    return null;
+  };
+
+  const addTask = async (task: Omit<Task, 'id'>) => {
+    const newTask = await taskService.create(task);
+    if (newTask) {
+      setTasks(prev => [...prev, newTask]);
+      return newTask;
+    }
+    return null;
+  };
+
+  const deleteTask = async (taskId: string) => {
+    const success = await taskService.delete(taskId);
+    if (success) {
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    }
+    return success;
+  };
+  
+  const updateTask = async (id: string, updates: Partial<Task>, observation?: string) => {
+    const updated = await taskService.update(id, updates, observation);
+    if (updated) {
+      setTasks(prev => prev.map(t => t.id === id ? updated : t));
+    }
+    return updated;
+  };
+  
+  const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
+    const newMeeting = await meetingService.create(meeting);
+    if (newMeeting) {
+      setMeetings(prev => [...prev, newMeeting]);
+      return newMeeting;
+    }
+    return null;
+  };
+
+  const deleteMeeting = async (id: string) => {
+    const success = await meetingService.delete(id);
+    if (success) {
+      setMeetings(prev => prev.filter(m => m.id !== id));
+    }
+    return success;
+  };
+
+  const updateMeeting = async (id: string, updates: Partial<Meeting>) => {
+    const updated = await meetingService.update(id, updates);
+    if (updated) {
+      setMeetings(prev => prev.map(m => m.id === id ? updated : m));
+    }
+    return updated;
+  };
 
   const appState = {
     clients, setClients, addClient, deleteClient, updateClient,
@@ -120,6 +204,17 @@ const AppContent = () => {
     tasks, setTasks, addTask, deleteTask, updateTask,
     meetings, setMeetings, addMeeting, deleteMeeting, updateMeeting
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-950 text-white items-center justify-center">
+        <div className="text-center">
+          <Zap className="animate-pulse mx-auto mb-4" size={48} />
+          <p className="text-xl font-bold">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-950 text-white overflow-hidden">

@@ -1,6 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { projectFileService } from '../services/supabaseService';
 import { 
   Plus, 
   Search, 
@@ -32,6 +33,7 @@ const ProjectList = ({ state }: any) => {
     dueDate: new Date().toISOString().split('T')[0]
   });
   const [initialFile, setInitialFile] = useState<ProjectFile | null>(null);
+  const initialFileRef = useRef<File | null>(null);
 
   const filteredProjects = projects.filter((p: Project) => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,35 +49,41 @@ const ProjectList = ({ state }: any) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        setInitialFile({
-          id: `file-${Date.now()}`,
-          name: file.name,
-          url: base64,
-          type: file.type,
-          size: file.size,
-          uploadedAt: new Date().toISOString()
-        });
-      };
-      reader.readAsDataURL(file);
+      // Armazenar o arquivo File para upload posterior
+      initialFileRef.current = file;
+      setInitialFile({
+        id: `temp-${Date.now()}`,
+        name: file.name,
+        url: '', // Será preenchido após upload
+        type: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString()
+      });
     }
   };
 
-  const handleAddProject = (e: React.FormEvent) => {
+  const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    const project: Project = {
+    
+    // Criar projeto primeiro
+    const project: Omit<Project, 'id'> = {
       ...newProject,
-      id: `p-${Date.now()}`,
       startDate: new Date().toISOString().split('T')[0],
       status: ProjectStatus.ACTIVE,
-      files: initialFile ? [initialFile] : []
+      files: []
     };
-    addProject(project);
+    
+    const createdProject = await addProject(project);
+    
+    if (createdProject && initialFileRef.current) {
+      // Fazer upload do arquivo inicial para o Storage
+      await projectFileService.uploadFile(createdProject.id, initialFileRef.current);
+    }
+    
     setIsModalOpen(false);
     setNewProject({ name: '', clientId: clients[0]?.id || '', description: '', value: 0, dueDate: new Date().toISOString().split('T')[0] });
     setInitialFile(null);
+    initialFileRef.current = null;
   };
 
   return (

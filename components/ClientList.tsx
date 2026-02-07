@@ -36,25 +36,19 @@ const ClientList = ({ state }: any) => {
     setIsModalOpen(true);
   };
 
-  const handleSaveClient = (e: React.FormEvent) => {
+  const handleSaveClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingClient) {
-      updateClient(editingClient.id, newClient);
+      await updateClient(editingClient.id, newClient);
     } else {
-      const client: Client = {
-        ...newClient,
-        id: `c-${Date.now()}`,
-        status: ClientStatus.ACTIVE,
-        observations: newClient.observations
-      };
-      addClient(client);
+      await addClient(newClient);
     }
     setIsModalOpen(false);
   };
 
-  const handleDeleteClient = (id: string, name: string) => {
+  const handleDeleteClient = async (id: string, name: string) => {
     if (confirm(`Deseja realmente excluir o cliente "${name}"? Esta ação não pode ser desfeita.`)) {
-      deleteClient(id);
+      await deleteClient(id);
     }
   };
 

@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+.env.local
+.env*.local
+dist
+.DS_Store
+*.log
+.vscode
+.idea
+*.swp
+*.swo
+*~
